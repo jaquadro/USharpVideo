@@ -25,6 +25,9 @@ namespace UdonSharp.Video
             _sliderText = sliderTransform.GetComponentInChildren<Text>();
             //_streamXTarget = ((RectTransform)transform).rect.width * 0.5f;
             _streamXTarget = transformWidth * 0.5f;
+
+            if (videoPlayer.defaultStream && videoPlayer.LocalIsOwner())
+                SetStreamVisual();
         }
 
         public void SetVideoVisual()

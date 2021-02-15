@@ -25,7 +25,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
         m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
+        m_Scale: {x: 1, y: 0}
         m_Offset: {x: 0, y: 0}
     - _DetailMask:
         m_Texture: {fileID: 0}
@@ -64,7 +64,7 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _IsAVProInput: 0
-    - _MetaPassEmissiveBoost: 1.2
+    - _MetaPassEmissiveBoost: 1.8
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1

@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
-  m_Name: VolumeController
+  m_Name: VolumePanelController
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: b2ac117dc4642434782db4cbdeb0a5cb,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: c6388ce5639ffab42bb9b5d5693145b6,
     type: 2}
   udonAssembly: 
   assemblyError: 
-  sourceCsScript: {fileID: 11500000, guid: 5238e5a94111b19489a5c0a38ad6b382, type: 3}
+  sourceCsScript: {fileID: 11500000, guid: c30bd1120588e9a47ba7e1bd6e3e5a72, type: 3}
   behaviourIDHeapVarName: __refl_const_intnl_udonTypeID
   compileErrors: []
   hasInteractEvent: 0
@@ -24,7 +24,7 @@ MonoBehaviour:
     SerializedFormat: 2
     SerializedBytes: 
     ReferencedUnityObjects:
-    - {fileID: 11500000, guid: c30bd1120588e9a47ba7e1bd6e3e5a72, type: 3}
+    - {fileID: 11500000, guid: 5238e5a94111b19489a5c0a38ad6b382, type: 3}
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
@@ -43,13 +43,13 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 6
+      Data: 7
     - Name: 
       Entry: 7
       Data: 
     - Name: $k
       Entry: 1
-      Data: volumePanels
+      Data: controller
     - Name: $v
       Entry: 7
       Data: 2|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
@@ -61,7 +61,7 @@ MonoBehaviour:
       Data: 4|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: UdonSharp.Video.VolumePanelController[], Assembly-CSharp
+      Data: UdonSharp.Video.VolumeController, Assembly-CSharp
     - Name: 
       Entry: 8
       Data: 
@@ -73,13 +73,13 @@ MonoBehaviour:
       Data: 0
     - Name: symbolResolvedTypeName
       Entry: 1
-      Data: UnityEngineComponentArray
+      Data: VRCUdonUdonBehaviour
     - Name: symbolOriginalName
       Entry: 1
-      Data: volumePanels
+      Data: controller
     - Name: symbolUniqueName
       Entry: 1
-      Data: volumePanels
+      Data: controller
     - Name: symbolDefaultValue
       Entry: 6
       Data: 
@@ -112,7 +112,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: volume
+      Data: slider
     - Name: $v
       Entry: 7
       Data: 6|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
@@ -124,7 +124,7 @@ MonoBehaviour:
       Data: 8|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: System.Single, mscorlib
+      Data: UnityEngine.UI.Slider, UnityEngine.UI
     - Name: 
       Entry: 8
       Data: 
@@ -136,13 +136,13 @@ MonoBehaviour:
       Data: 0
     - Name: symbolResolvedTypeName
       Entry: 1
-      Data: SystemSingle
+      Data: UnityEngineUISlider
     - Name: symbolOriginalName
       Entry: 1
-      Data: volume
+      Data: slider
     - Name: symbolUniqueName
       Entry: 1
-      Data: volume
+      Data: slider
     - Name: symbolDefaultValue
       Entry: 6
       Data: 
@@ -175,7 +175,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: muted
+      Data: muteIcon
     - Name: $v
       Entry: 7
       Data: 10|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
@@ -187,7 +187,7 @@ MonoBehaviour:
       Data: 12|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: System.Boolean, mscorlib
+      Data: UnityEngine.GameObject, UnityEngine.CoreModule
     - Name: 
       Entry: 8
       Data: 
@@ -199,13 +199,13 @@ MonoBehaviour:
       Data: 0
     - Name: symbolResolvedTypeName
       Entry: 1
-      Data: SystemBoolean
+      Data: UnityEngineGameObject
     - Name: symbolOriginalName
       Entry: 1
-      Data: muted
+      Data: muteIcon
     - Name: symbolUniqueName
       Entry: 1
-      Data: muted
+      Data: muteIcon
     - Name: symbolDefaultValue
       Entry: 6
       Data: 
@@ -238,7 +238,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: controlledAudioSource
+      Data: zeroVolumeIcon
     - Name: $v
       Entry: 7
       Data: 14|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
@@ -246,14 +246,8 @@ MonoBehaviour:
       Entry: 7
       Data: 15|UdonSharp.Compiler.SymbolDefinition, UdonSharp.Editor
     - Name: internalType
-      Entry: 7
-      Data: 16|System.RuntimeType, mscorlib
-    - Name: 
-      Entry: 1
-      Data: UnityEngine.AudioSource, UnityEngine.AudioModule
-    - Name: 
-      Entry: 8
-      Data: 
+      Entry: 9
+      Data: 12
     - Name: declarationType
       Entry: 3
       Data: 1
@@ -262,13 +256,13 @@ MonoBehaviour:
       Data: 0
     - Name: symbolResolvedTypeName
       Entry: 1
-      Data: UnityEngineAudioSource
+      Data: UnityEngineGameObject
     - Name: symbolOriginalName
       Entry: 1
-      Data: controlledAudioSource
+      Data: zeroVolumeIcon
     - Name: symbolUniqueName
       Entry: 1
-      Data: controlledAudioSource
+      Data: zeroVolumeIcon
     - Name: symbolDefaultValue
       Entry: 6
       Data: 
@@ -277,7 +271,7 @@ MonoBehaviour:
       Data: 
     - Name: fieldAttributes
       Entry: 7
-      Data: 17|System.Collections.Generic.List`1[[System.Attribute, mscorlib]], mscorlib
+      Data: 16|System.Collections.Generic.List`1[[System.Attribute, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -301,16 +295,16 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: avProAudioR
+      Data: lowVolumeIcon
     - Name: $v
       Entry: 7
-      Data: 18|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
+      Data: 17|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: fieldSymbol
       Entry: 7
-      Data: 19|UdonSharp.Compiler.SymbolDefinition, UdonSharp.Editor
+      Data: 18|UdonSharp.Compiler.SymbolDefinition, UdonSharp.Editor
     - Name: internalType
       Entry: 9
-      Data: 16
+      Data: 12
     - Name: declarationType
       Entry: 3
       Data: 1
@@ -319,13 +313,13 @@ MonoBehaviour:
       Data: 0
     - Name: symbolResolvedTypeName
       Entry: 1
-      Data: UnityEngineAudioSource
+      Data: UnityEngineGameObject
     - Name: symbolOriginalName
       Entry: 1
-      Data: avProAudioR
+      Data: lowVolumeIcon
     - Name: symbolUniqueName
       Entry: 1
-      Data: avProAudioR
+      Data: lowVolumeIcon
     - Name: symbolDefaultValue
       Entry: 6
       Data: 
@@ -334,7 +328,7 @@ MonoBehaviour:
       Data: 
     - Name: fieldAttributes
       Entry: 7
-      Data: 20|System.Collections.Generic.List`1[[System.Attribute, mscorlib]], mscorlib
+      Data: 19|System.Collections.Generic.List`1[[System.Attribute, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -358,16 +352,16 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: avProAudioL
+      Data: HighVolumeIcon
     - Name: $v
       Entry: 7
-      Data: 21|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
+      Data: 20|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: fieldSymbol
       Entry: 7
-      Data: 22|UdonSharp.Compiler.SymbolDefinition, UdonSharp.Editor
+      Data: 21|UdonSharp.Compiler.SymbolDefinition, UdonSharp.Editor
     - Name: internalType
       Entry: 9
-      Data: 16
+      Data: 12
     - Name: declarationType
       Entry: 3
       Data: 1
@@ -376,13 +370,13 @@ MonoBehaviour:
       Data: 0
     - Name: symbolResolvedTypeName
       Entry: 1
-      Data: UnityEngineAudioSource
+      Data: UnityEngineGameObject
     - Name: symbolOriginalName
       Entry: 1
-      Data: avProAudioL
+      Data: HighVolumeIcon
     - Name: symbolUniqueName
       Entry: 1
-      Data: avProAudioL
+      Data: HighVolumeIcon
     - Name: symbolDefaultValue
       Entry: 6
       Data: 
@@ -391,7 +385,70 @@ MonoBehaviour:
       Data: 
     - Name: fieldAttributes
       Entry: 7
-      Data: 23|System.Collections.Generic.List`1[[System.Attribute, mscorlib]], mscorlib
+      Data: 22|System.Collections.Generic.List`1[[System.Attribute, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: userBehaviourSource
+      Entry: 6
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: _muted
+    - Name: $v
+      Entry: 7
+      Data: 23|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
+    - Name: fieldSymbol
+      Entry: 7
+      Data: 24|UdonSharp.Compiler.SymbolDefinition, UdonSharp.Editor
+    - Name: internalType
+      Entry: 7
+      Data: 25|System.RuntimeType, mscorlib
+    - Name: 
+      Entry: 1
+      Data: System.Boolean, mscorlib
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: declarationType
+      Entry: 3
+      Data: 2
+    - Name: syncMode
+      Entry: 3
+      Data: 0
+    - Name: symbolResolvedTypeName
+      Entry: 1
+      Data: SystemBoolean
+    - Name: symbolOriginalName
+      Entry: 1
+      Data: _muted
+    - Name: symbolUniqueName
+      Entry: 1
+      Data: _muted
+    - Name: symbolDefaultValue
+      Entry: 6
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: fieldAttributes
+      Entry: 7
+      Data: 26|System.Collections.Generic.List`1[[System.Attribute, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0

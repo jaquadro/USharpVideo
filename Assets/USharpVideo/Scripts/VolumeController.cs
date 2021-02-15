@@ -10,88 +10,60 @@ namespace UdonSharp.Video
     [AddComponentMenu("Udon Sharp/Video/Volume Controller")]
     public class VolumeController : UdonSharpBehaviour
     {
-        public AudioSource[] audioSources;
-        public Slider slider;
+        public VolumePanelController[] volumePanels;
+        public float volume;
+        public bool muted;
 
-        public GameObject muteIcon;
-        public GameObject zeroVolumeIcon;
-        public GameObject lowVolumeIcon;
-        public GameObject HighVolumeIcon;
-
-        bool _muted = false;
+        public AudioSource controlledAudioSource;
+        public AudioSource avProAudioR;
+        public AudioSource avProAudioL;
 
         private void Start()
         {
-            ApplyVolumeSlider();
-            UpdateVolumeIcon();
+            foreach (var panel in volumePanels)
+            {
+                panel.UpdateSliderPosition(volume);
+                panel.UpdateMuteButton(muted);
+            }
         }
 
-        void ApplyVolumeSlider()
+        public void ApplyVolumeSlider(float sliderValue)
         {
-            // https://www.dr-lex.be/info-stuff/volumecontrols.html#ideal thanks TCL for help with finding and understanding this
-            // Using the 50dB dynamic range constants
-            float volume = Mathf.Clamp01(3.1623e-3f * Mathf.Exp(slider.value * 5.757f) - 3.1623e-3f);
-
-            foreach (AudioSource audioSource in audioSources)
-                audioSource.volume = volume;
-        }
-
-        public void SliderValueChanged()
-        {
-            if (_muted)
+            if (volume == sliderValue)
                 return;
 
-            ApplyVolumeSlider();
-            UpdateVolumeIcon();
+            volume = sliderValue;
+            ApplyVolumeFromSlider(volume);
+            foreach (var panel in volumePanels)
+            {
+                panel.UpdateSliderPosition(volume);
+            }
         }
 
-        public void PressMuteButton()
+        public void ToggleMuteButton()
         {
-            _muted = !_muted;
+            muted = !muted;
 
-            if (_muted)
+            ApplyVolumeFromSlider(volume);
+            foreach (var panel in volumePanels)
             {
-                foreach (AudioSource audioSource in audioSources)
-                    audioSource.volume = 0f;
+                panel.UpdateMuteButton(muted);
             }
-            else
-            {
-                ApplyVolumeSlider();
-            }
-
-            UpdateVolumeIcon();
         }
 
-        void UpdateVolumeIcon()
+        private void ApplyVolumeFromSlider(float position)
         {
-            if (_muted)
-            {
-                muteIcon.SetActive(true);
-                zeroVolumeIcon.SetActive(false);
-                lowVolumeIcon.SetActive(false);
-                HighVolumeIcon.SetActive(false);
-            }
-            else if (slider.value > 0.6f)
-            {
-                muteIcon.SetActive(false);
-                zeroVolumeIcon.SetActive(false);
-                lowVolumeIcon.SetActive(false);
-                HighVolumeIcon.SetActive(true);
-            }
-            else if (slider.value > 0f)
-            {
-                muteIcon.SetActive(false);
-                zeroVolumeIcon.SetActive(false);
-                lowVolumeIcon.SetActive(true);
-                HighVolumeIcon.SetActive(false);
-            }
-            else
-            {
-                muteIcon.SetActive(false);
-                zeroVolumeIcon.SetActive(true);
-                lowVolumeIcon.SetActive(false);
-                HighVolumeIcon.SetActive(false);
-            }
+            float applyVolume = position;
+            if (muted)
+                applyVolume = 0;
+
+            // https://www.dr-lex.be/info-stuff/volumecontrols.html#ideal thanks TCL for help with finding and understanding this
+            // Using the 50dB dynamic range constants
+            float audioVolume = Mathf.Clamp01(3.1623e-3f * Mathf.Exp(applyVolume * 5.757f) - 3.1623e-3f);
+
+            controlledAudioSource.volume = audioVolume;
+            avProAudioR.volume = audioVolume;
+            avProAudioL.volume = audioVolume;
         }
     }
 }

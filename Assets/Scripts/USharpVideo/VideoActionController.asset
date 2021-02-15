@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
-  m_Name: EmissiveUpdater
+  m_Name: VideoActionController
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 161521b3a4878a2479705b8f81f30b6b,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: d048e31a92e64404d8cbdaf350361318,
     type: 2}
   udonAssembly: 
   assemblyError: 
-  sourceCsScript: {fileID: 11500000, guid: efe97c645c76b7e42bc6eb27009209c4, type: 3}
+  sourceCsScript: {fileID: 11500000, guid: d13990c7c2ffa7a45bc964a273262e5d, type: 3}
   behaviourIDHeapVarName: __refl_const_intnl_udonTypeID
   compileErrors: []
   hasInteractEvent: 0
@@ -48,7 +48,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: rendererToUpdate
+      Data: giMaterial
     - Name: $v
       Entry: 7
       Data: 2|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
@@ -60,25 +60,25 @@ MonoBehaviour:
       Data: 4|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: UnityEngine.MeshRenderer, UnityEngine.CoreModule
+      Data: UnityEngine.Material, UnityEngine.CoreModule
     - Name: 
       Entry: 8
       Data: 
     - Name: declarationType
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: syncMode
       Entry: 3
       Data: 0
     - Name: symbolResolvedTypeName
       Entry: 1
-      Data: UnityEngineMeshRenderer
+      Data: UnityEngineMaterial
     - Name: symbolOriginalName
       Entry: 1
-      Data: rendererToUpdate
+      Data: giMaterial
     - Name: symbolUniqueName
       Entry: 1
-      Data: rendererToUpdate
+      Data: giMaterial
     - Name: symbolDefaultValue
       Entry: 6
       Data: 
