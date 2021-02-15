@@ -1,5 +1,6 @@
 # USharpVideo
 A basic video player made for VRChat using Udon and UdonSharp. Supports normal videos and live streams.
+Extensions by Texelsaur.
 
 ![example](https://i.imgur.com/EZ3imc1.png)
 
