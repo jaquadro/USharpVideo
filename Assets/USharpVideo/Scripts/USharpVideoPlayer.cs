@@ -77,6 +77,7 @@ namespace UdonSharp.Video
         public Text statusTextDropShadow;
         public Slider videoProgressSlider;
         public SyncModeController syncModeController;
+        public Watchdog watchdog;
 
         public UdonBehaviour videoControlHandler;
 
@@ -805,6 +806,7 @@ namespace UdonSharp.Video
 
         private void Update()
         {
+            watchdog.Ping();
             bool isOwner = Networking.IsOwner(gameObject);
 
             // These need to be moved to OnOwnershipTransferred when it's fixed.
@@ -1000,6 +1002,7 @@ namespace UdonSharp.Video
         SerializedProperty extraScreenMaterialsProperty;
         SerializedProperty extraScreenMaterialPropsProperty;
         SerializedProperty videoControlHandlerProperty;
+        SerializedProperty watchdogProperty;
 
         // UI fields
         SerializedProperty inputFieldProperty;
@@ -1047,6 +1050,7 @@ namespace UdonSharp.Video
             extraScreenMaterialsProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.extraScreenMaterials));
             extraScreenMaterialPropsProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.extraScreenMaterialProps));
             videoControlHandlerProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.videoControlHandler));
+            watchdogProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.watchdog));
 
             // UI Fields
             inputFieldProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.inputField));
@@ -1157,6 +1161,7 @@ namespace UdonSharp.Video
                 EditorGUILayout.PropertyField(statusTextDropShadowProperty);
                 EditorGUILayout.PropertyField(videoProgressSlider);
                 EditorGUILayout.PropertyField(videoControlHandlerProperty);
+                EditorGUILayout.PropertyField(watchdogProperty);
 
                 EditorGUILayout.PropertyField(masterTextFieldProperty);
                 EditorGUILayout.PropertyField(videoOwnerTextFieldProperty);

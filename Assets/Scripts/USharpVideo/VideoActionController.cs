@@ -22,4 +22,9 @@ public class VideoActionController : UdonSharpBehaviour
     {
         giMaterial.SetFloat("_WallLightingMode", 1);
     }
+
+    public void PlayerFault()
+    {
+        giMaterial.SetFloat("_WallLightingMode", 2);
+    }
 }

@@ -74,6 +74,8 @@ crashlytics-build.properties
 /Assets/Gizmos/UdonSharp.meta
 /Assets/SerializedUdonPrograms/
 /Assets/SerializedUdonPrograms.meta
+/Assets/CyanEmu/
+/Assets/CyanEmu.meta
 
 bakery_times.log
 Packages/com.vrchat.vrcsdk3/
