@@ -39,14 +39,14 @@ namespace UdonSharp.Video
         [Tooltip("Whether to allow video seeking with the progress bar on the video")]
         public bool allowSeeking = true;
 
-        [Tooltip("If enabled player control is locked out for all players")]
-        public bool autoMode = false;
-
         [Tooltip("If enabled defaults to unlocked so anyone can put in a URL")]
         public bool defaultUnlocked = false;
 
         [Tooltip("If enabled defaults to stream mode")]
         public bool defaultStream = false;
+
+        [Tooltip("Who can control the player")]
+        public int controlMode = CONTROL_MODE_MASTER_WH;
 
         [Tooltip("Whether to play through playlist once or repeat playlist on loop")]
         public int defaultPlaylistMode = PLAYLIST_MODE_NORMAL;
@@ -87,6 +87,9 @@ namespace UdonSharp.Video
         public InputField currentVideoField;
         public InputField lastVideoField;
         public GameObject masterCheckObj;
+
+        public string[] userWhitelist;
+        bool _isWhitelisted;
 
         [UdonSynced]
         VRCUrl _syncedURL;
@@ -143,12 +146,23 @@ namespace UdonSharp.Video
         const int PLAYLIST_MODE_NORMAL = 0;
         const int PLAYLIST_MODE_REPEAT = 1;
 
+        const int CONTROL_MODE_MASTER_WH = 0;
+        const int CONTROL_MODE_MASTER = 1;
+        const int CONTROL_MODE_WH = 2;
+        const int CONTROL_MODE_ANY = 3;
+
         [UdonSynced, System.NonSerialized] // I'd love to use byte, sbyte, or even short for these, but UdonSync is broken and puts Int32's into these regardless of the type
         public int currentPlayerMode = PLAYER_MODE_VIDEO;
         int _localPlayerMode = PLAYER_MODE_VIDEO;
 
         private void Start()
         {
+            foreach (string user in userWhitelist)
+            {
+                if (Networking.LocalPlayer.displayName == user)
+                    _isWhitelisted = true;
+            }
+
             unityVideoPlayer.Loop = false;
             unityVideoPlayer.Stop();
             avProVideoPlayer.Loop = false;
@@ -194,9 +208,25 @@ namespace UdonSharp.Video
             return Networking.IsOwner(gameObject);
         }
 
+        public bool CanTakeControl()
+        {
+            switch (controlMode)
+            {
+                case CONTROL_MODE_MASTER_WH:
+                    return _isWhitelisted || Networking.IsMaster || !_masterOnly;
+                case CONTROL_MODE_MASTER:
+                    return Networking.IsMaster || !_masterOnly;
+                case CONTROL_MODE_WH:
+                    return _isWhitelisted || !_masterOnly;
+                case CONTROL_MODE_ANY:
+                default:
+                    return true;
+            }
+        }
+
         void TakeOwnership()
         {
-            if (Networking.IsMaster || !_masterOnly)
+            if (CanTakeControl())
             {
                 if (!Networking.IsOwner(gameObject))
                 {
@@ -224,7 +254,7 @@ namespace UdonSharp.Video
         {
             bool isOwner = Networking.IsOwner(gameObject);
 
-            if (!isOwner && !Networking.IsMaster && _masterOnly)
+            if (!isOwner && !CanTakeControl() && _masterOnly)
                 return;
 
             if (_syncedURL != null && url.Get() == "")
@@ -237,8 +267,8 @@ namespace UdonSharp.Video
 
             if (disablePlaylist)
             {
-                // -1 means we have stopped using the playlist since we had manual input
-                _nextPlaylistIndex = -1;
+                // -2 means we have stopped using the playlist since we had manual input
+                _nextPlaylistIndex = -2;
             }
 
             StopVideo();
@@ -329,13 +359,21 @@ namespace UdonSharp.Video
                 return;
 
             // Playlist is disabled, handle as single video
-            if (_nextPlaylistIndex == -1)
+            if (_nextPlaylistIndex < 0)
             {
-                if (_playlistMode == PLAYLIST_MODE_REPEAT)
-                    PlayVideo(_syncedURL, false);
-                else
+                if (_playlistMode == PLAYLIST_MODE_NORMAL)
+                {
                     _delayStartLoad = 0f;
-                return;
+                    return;
+                }
+
+                if (_nextPlaylistIndex == -1)
+                    _nextPlaylistIndex = 0;
+                else if (_nextPlaylistIndex == -2)
+                {
+                    PlayVideo(_syncedURL, false);
+                    return;
+                }
             }
 
             int currentIdx = _nextPlaylistIndex++;
@@ -350,7 +388,10 @@ namespace UdonSharp.Video
                     return;
                 }
                 else if (_playlistMode == PLAYLIST_MODE_REPEAT)
+                {
+                    _nextPlaylistIndex = 1;
                     currentIdx = 0;
+                }
             }
 
             PlayVideo(playlist[currentIdx], false);
@@ -358,7 +399,7 @@ namespace UdonSharp.Video
 
         public void TriggerPlaylistModeButton()
         {
-            if (autoMode || !Networking.IsOwner(gameObject))
+            if (!Networking.IsOwner(gameObject))
                 return;
 
             int mode = _playlistMode + 1;
@@ -366,6 +407,8 @@ namespace UdonSharp.Video
                 mode = 0;
 
             SetPlaylistMode(mode);
+            if (mode == PLAYLIST_MODE_REPEAT && !_ownerPlaying)
+                PlayNextVideoFromPlaylist();
         }
 
         public void SetPlaylistMode(int mode)
@@ -377,25 +420,30 @@ namespace UdonSharp.Video
 
         public void TriggerLockButton()
         {
-            if (autoMode || !Networking.IsMaster)
+            if (!CanTakeControl())
                 return;
 
-            _masterOnly = _masterOnlyLocal = !_masterOnlyLocal;
+            _masterOnlyLocal = !_masterOnlyLocal;
+            _masterOnly = _masterOnlyLocal;
 
-            if (_masterOnly && !Networking.IsOwner(gameObject))
+            if (!Networking.IsOwner(gameObject))
             {
+                Debug.Log("[USharpVideo] TriggerLock (Remote) -> " + _masterOnly);
                 _needsOwnerTransition = true;
                 Networking.SetOwner(Networking.LocalPlayer, gameObject);
             }
-
-            masterLockedIcon.SetActive(_masterOnly);
-            masterUnlockedIcon.SetActive(!_masterOnly);
+            else
+            {
+                Debug.Log("[USharpVideo] TriggerLock (Owner) -> " + _masterOnly);
+                masterLockedIcon.SetActive(_masterOnly);
+                masterUnlockedIcon.SetActive(!_masterOnly);
+            }
         }
 
         // Pauses videos and stops streams
         public void TriggerPauseButton()
         {
-            if (autoMode || !Networking.IsOwner(gameObject))
+            if (!Networking.IsOwner(gameObject))
                 return;
 
             _ownerPaused = !_ownerPaused;
@@ -448,7 +496,7 @@ namespace UdonSharp.Video
             if (!_draggingSlider || !allowSeeking)
                 return;
 
-            if (autoMode || !Networking.IsOwner(gameObject))
+            if (!Networking.IsOwner(gameObject))
                 return;
 
             float newSliderValue = videoProgressSlider.value;
@@ -694,7 +742,7 @@ namespace UdonSharp.Video
 
         public void SetVideoSyncMode()
         {
-            if (autoMode || (_masterOnly && !Networking.IsMaster))
+            if (!CanTakeControl())
                 return;
 
             TakeOwnership();
@@ -706,7 +754,7 @@ namespace UdonSharp.Video
 
         public void SetStreamSyncMode()
         {
-            if (autoMode || (_masterOnly && !Networking.IsMaster))
+            if (!CanTakeControl())
                 return;
 
             TakeOwnership();
@@ -721,7 +769,7 @@ namespace UdonSharp.Video
             if (currentPlayerMode == _localPlayerMode)
                 return;
 
-            _nextPlaylistIndex = -1;
+            _nextPlaylistIndex = -2;
             _currentPlayer.Stop();
             _locallyPaused = _ownerPaused = false;
 
@@ -756,8 +804,18 @@ namespace UdonSharp.Video
             if (Networking.IsOwner(gameObject))
                 return;
 
-            masterLockedIcon.SetActive(autoMode || _masterOnly);
-            masterUnlockedIcon.SetActive(!autoMode && !_masterOnly);
+            if (_needsOwnerTransition)
+            {
+                _masterOnly = _masterOnlyLocal;
+                Debug.Log("[USharpVideo] Deserialize needs transition -> " + _masterOnly);
+            }
+            else
+            {
+                _masterOnlyLocal = _masterOnly;
+                masterLockedIcon.SetActive(_masterOnly && controlMode != CONTROL_MODE_ANY);
+                masterUnlockedIcon.SetActive(!_masterOnly || controlMode == CONTROL_MODE_ANY);
+            }
+
             playIcon.SetActive(_ownerPaused);
             pauseStopIcon.SetActive(!_ownerPaused);
             playlistNormalIcon.SetActive(_playlistMode == PLAYLIST_MODE_NORMAL);
@@ -808,17 +866,29 @@ namespace UdonSharp.Video
         {
             watchdog.Ping();
             bool isOwner = Networking.IsOwner(gameObject);
+            bool canControl = CanTakeControl();
 
             // These need to be moved to OnOwnershipTransferred when it's fixed.
-            if (autoMode)
+            if (controlMode == CONTROL_MODE_WH && userWhitelist.Length == 0)
             {
                 urlPlaceholderText.text = $"Auto Mode";
                 inputField.readOnly = true;
                 lockGraphic.color = redGraphicColor;
             }
-            else if (_masterOnly && !Networking.IsMaster)
+            else if (_masterOnly && !canControl)
             {
-                urlPlaceholderText.text = $"Only the master {Networking.GetOwner(gameObject).displayName} may add URLs";
+                switch(controlMode)
+                {
+                    case CONTROL_MODE_MASTER_WH:
+                        urlPlaceholderText.text = $"Only the master {Networking.GetOwner(gameObject).displayName} or player admins may add URLs";
+                        break;
+                    case CONTROL_MODE_MASTER:
+                        urlPlaceholderText.text = $"Only the master {Networking.GetOwner(gameObject).displayName} may add URLs";
+                        break;
+                    case CONTROL_MODE_WH:
+                        urlPlaceholderText.text = $"Only player admins may add URLs";
+                        break;
+                }
                 inputField.readOnly = true;
                 lockGraphic.color = redGraphicColor;
             }
@@ -833,7 +903,7 @@ namespace UdonSharp.Video
                 urlPlaceholderText.text = "Enter Video URL...";
                 inputField.readOnly = false;
 
-                if (isOwner)
+                if (isOwner || canControl)
                     lockGraphic.color = whiteGraphicColor;
                 else
                     lockGraphic.color = redGraphicColor;
@@ -899,6 +969,9 @@ namespace UdonSharp.Video
                     //StopVideo();
                     _needsOwnerTransition = false;
                     _masterOnly = _masterOnlyLocal;
+                    masterLockedIcon.SetActive(_masterOnly);
+                    masterUnlockedIcon.SetActive(!_masterOnly);
+                    Debug.Log("[USharpVideo] Update needsTransition -> " + _masterOnly);
                 }
 
                 SyncVideoIfTime();
@@ -993,16 +1066,17 @@ namespace UdonSharp.Video
         ReorderableList extraScreenMaterialPropsList;
 
         SerializedProperty allowSeekProperty;
-        SerializedProperty autoModeProperty;
         SerializedProperty defaultUnlockedProperty;
         SerializedProperty defaultStreamProperty;
         SerializedProperty syncFrequencyProperty;
         SerializedProperty syncThresholdProperty;
+        SerializedProperty controlModeProperty;
         SerializedProperty playlistProperty;
         SerializedProperty extraScreenMaterialsProperty;
         SerializedProperty extraScreenMaterialPropsProperty;
         SerializedProperty videoControlHandlerProperty;
         SerializedProperty watchdogProperty;
+        SerializedProperty userWhitelistProperty;
 
         // UI fields
         SerializedProperty inputFieldProperty;
@@ -1038,9 +1112,9 @@ namespace UdonSharp.Video
             logoTextureProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.logoTexture));
             loopTextureProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.loopTexture));
             playlistModeProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.defaultPlaylistMode));
+            controlModeProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.controlMode));
 
             allowSeekProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.allowSeeking));
-            autoModeProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.autoMode));
             defaultUnlockedProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.defaultUnlocked));
             defaultStreamProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.defaultStream));
             syncFrequencyProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.syncFrequency));
@@ -1051,6 +1125,7 @@ namespace UdonSharp.Video
             extraScreenMaterialPropsProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.extraScreenMaterialProps));
             videoControlHandlerProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.videoControlHandler));
             watchdogProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.watchdog));
+            userWhitelistProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.userWhitelist));
 
             // UI Fields
             inputFieldProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.inputField));
@@ -1112,13 +1187,15 @@ namespace UdonSharp.Video
             if (UdonSharpGUI.DrawConvertToUdonBehaviourButton(target) ||
                 UdonSharpGUI.DrawProgramSource(target))
                 return;
-
-            EditorGUILayout.PropertyField(autoModeProperty);
+            
             EditorGUILayout.PropertyField(allowSeekProperty);
             EditorGUILayout.PropertyField(defaultUnlockedProperty);
             EditorGUILayout.PropertyField(defaultStreamProperty);
             EditorGUILayout.PropertyField(syncFrequencyProperty);
             EditorGUILayout.PropertyField(syncThresholdProperty);
+
+            int controlModeResult = EditorGUILayout.Popup("Control Mode", playlistModeProperty.intValue, new string[] { "Whitelist & Master", "Master Only", "Whitelist Only", "Anyone" });
+            playlistModeProperty.intValue = controlModeResult;
 
             int modeResult = EditorGUILayout.Popup("Playlist Mode", playlistModeProperty.intValue, new string[] { "Normal", "Repeat" });
             playlistModeProperty.intValue = modeResult;
@@ -1129,6 +1206,8 @@ namespace UdonSharp.Video
             EditorGUILayout.Space();
             extraScreenMaterialsList.DoLayoutList();
             extraScreenMaterialPropsList.DoLayoutList();
+
+            EditorGUILayout.PropertyField(userWhitelistProperty, true);
 
             EditorGUILayout.Space();
             _showUIReferencesDropdown = EditorGUILayout.Foldout(_showUIReferencesDropdown, "Object References");
