@@ -125,7 +125,7 @@ namespace UdonSharp.Video
         string _statusStr = "";
 
         const int MAX_RETRY_COUNT = 1;
-        const float RETRY_TIMEOUT = 10f;
+        const float RETRY_TIMEOUT = 10;
         const float DELAY_START_TIMEOUT = 10f;
 
         bool _loadingVideo = false;
@@ -134,6 +134,7 @@ namespace UdonSharp.Video
         float _videoTargetStartTime = 0f;
         float _delayStartLoad = 0f;
         int _localScreenMode = SCREEN_MODE_NORMAL;
+        bool _rtsptSource = false;
 
         const int PLAYER_MODE_VIDEO = 0;
         const int PLAYER_MODE_STREAM = 1;
@@ -247,6 +248,7 @@ namespace UdonSharp.Video
             _loadingVideo = true;
             _currentLoadingTime = 0f;
             _currentRetryCount = 0;
+            _currentPlayer.Stop();
             _currentPlayer.LoadURL(url);
         }
 
@@ -282,18 +284,28 @@ namespace UdonSharp.Video
                 _videoNumber += 2;
 
             _loadedVideoNumber = _videoNumber;
+
             StartVideoLoad(_syncedURL);
-            _currentPlayer.Stop();
+
             _ownerPlaying = false;
             _locallyPaused = _ownerPaused = false;
 
             _videoStartNetworkTime = float.MaxValue;
 
+            string urlStr = url.Get();
+
+            // RTSPT sources (and maybe others!?) trigger a spontaneous OnVideoEnd event at video start
+            if (currentPlayerMode == PLAYER_MODE_STREAM && urlStr.Contains("rtspt://"))
+            {
+                _rtsptSource = true;
+                Debug.Log("[USharpVideo] Detected RTSPT source");
+            }
+            else
+                _rtsptSource = false;
+
             if (Networking.IsOwner(gameObject))
             {
                 // Attempt to parse out a start time from YouTube links with t= or start=
-                string urlStr = url.Get();
-
                 if (currentPlayerMode != PLAYER_MODE_STREAM &&
                     (urlStr.Contains("youtube.com/watch") ||
                      urlStr.Contains("youtu.be/")))
@@ -524,6 +536,7 @@ namespace UdonSharp.Video
 
         public override void OnVideoReady()
         {
+            Debug.Log("[USharpVideo] Video ready");
             _loadingVideo = false;
             _currentLoadingTime = 0f;
             _currentRetryCount = 0;
@@ -548,6 +561,7 @@ namespace UdonSharp.Video
 
         public override void OnVideoStart()
         {
+            Debug.Log("[USharpVideo] Video start");
             if (Networking.IsOwner(gameObject))
             {
                 if (_locallyPaused)
@@ -594,6 +608,13 @@ namespace UdonSharp.Video
 
         public override void OnVideoEnd()
         {
+            if (_rtsptSource)
+            {
+                Debug.Log("[USharpVideo] Video ended (ignored) for RTSPT source");
+                return;
+            }
+
+            Debug.Log("[USharpVideo] Video ended");
             // When the video ends on Owner, set time to 0 and playing to false
             if (Networking.IsOwner(gameObject))
             {
@@ -915,6 +936,8 @@ namespace UdonSharp.Video
             float currentTime = _currentPlayer.GetTime();
 
             bool isVideoPlayMode = currentPlayerMode == PLAYER_MODE_VIDEO;
+
+            videoProgressSlider.interactable = isOwner;
 
             if (isVideoPlayMode)
             {
