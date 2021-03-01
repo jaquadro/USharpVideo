@@ -1217,8 +1217,8 @@ namespace UdonSharp.Video
             EditorGUILayout.PropertyField(syncFrequencyProperty);
             EditorGUILayout.PropertyField(syncThresholdProperty);
 
-            int controlModeResult = EditorGUILayout.Popup("Control Mode", playlistModeProperty.intValue, new string[] { "Whitelist & Master", "Master Only", "Whitelist Only", "Anyone" });
-            playlistModeProperty.intValue = controlModeResult;
+            int controlModeResult = EditorGUILayout.Popup("Control Mode", controlModeProperty.intValue, new string[] { "Whitelist & Master", "Master Only", "Whitelist Only", "Anyone" });
+            controlModeProperty.intValue = controlModeResult;
 
             int modeResult = EditorGUILayout.Popup("Playlist Mode", playlistModeProperty.intValue, new string[] { "Normal", "Repeat" });
             playlistModeProperty.intValue = modeResult;
