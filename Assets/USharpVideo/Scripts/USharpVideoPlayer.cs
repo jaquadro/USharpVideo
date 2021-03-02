@@ -481,7 +481,6 @@ namespace UdonSharp.Video
                 else
                 {
                     _currentPlayer.Play();
-                    _currentPlayer.SetTime(float.MaxValue);
                 }
 
             }
@@ -562,6 +561,7 @@ namespace UdonSharp.Video
         public override void OnVideoStart()
         {
             Debug.Log("[USharpVideo] Video start");
+
             if (Networking.IsOwner(gameObject))
             {
                 if (_locallyPaused)
@@ -590,9 +590,7 @@ namespace UdonSharp.Video
             lastVideoField.text = currentVideoField.text;
             currentVideoField.text = _syncedURL.Get();
 
-            if (currentPlayerMode == PLAYER_MODE_STREAM)
-                _currentPlayer.SetTime(float.MaxValue);
-            else
+            if (currentPlayerMode == PLAYER_MODE_VIDEO)
                 _currentPlayer.SetTime(_videoTargetStartTime);
             _videoTargetStartTime = 0f;
 
@@ -856,9 +854,6 @@ namespace UdonSharp.Video
             {
                 Debug.Log("[USharpVideo] Play");
                 _currentPlayer.Play();
-                if (currentPlayerMode == PLAYER_MODE_STREAM)
-                    _currentPlayer.SetTime(float.MaxValue);
-
                 _locallyPaused = false;
             }
 
