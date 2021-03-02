@@ -712,20 +712,25 @@ namespace UdonSharp.Video
         void UpdateStreamScreenGrab()
         {
             Texture sourceTexture = _videoRenderTex;
+            int avPro = 0;
 
 #if !UNITY_EDITOR
             if (_localScreenMode == SCREEN_MODE_LOGO && logoTexture != null)
                 sourceTexture = logoTexture;
             else if (_localScreenMode == SCREEN_MODE_TRANSITION && loopTexture != null)
                 sourceTexture = loopTexture;
-            else
+            else {
                 sourceTexture = streamRTSource.sharedMaterial.GetTexture("_MainTex");
-
-            if (sourceTexture == null)
-                sourceTexture = logoTexture;
+                if (sourceTexture == null)
+                    sourceTexture = logoTexture;
+                else
+                    avPro = 1;
+            }
 #endif
 
-            screenRenderer.sharedMaterial.SetTexture("_EmissionMap", sourceTexture);
+            Material screenMaterial = screenRenderer.sharedMaterial;
+            screenMaterial.SetTexture("_EmissionMap", sourceTexture);
+            screenMaterial.SetInt("_IsAVProInput", avPro);
 
             for (int i = 0; i < extraScreenMaterials.Length; i++)
             {
