@@ -682,7 +682,10 @@ namespace UdonSharp.Video
             else if (currentPlayerMode == PLAYER_MODE_STREAM)
             {
                 sourceTexture = streamRTSource.sharedMaterial.GetTexture("_MainTex");
-                avPro = 1;
+                if (sourceTexture == null)
+                    sourceTexture = logoTexture;
+                else
+                    avPro = 1;
             }
 #endif
             if (videoControlHandler != null) {
@@ -710,13 +713,16 @@ namespace UdonSharp.Video
         {
             Texture sourceTexture = _videoRenderTex;
 
- #if !UNITY_EDITOR
+#if !UNITY_EDITOR
             if (_localScreenMode == SCREEN_MODE_LOGO && logoTexture != null)
                 sourceTexture = logoTexture;
             else if (_localScreenMode == SCREEN_MODE_TRANSITION && loopTexture != null)
                 sourceTexture = loopTexture;
             else
                 sourceTexture = streamRTSource.sharedMaterial.GetTexture("_MainTex");
+
+            if (sourceTexture == null)
+                sourceTexture = logoTexture;
 #endif
 
             screenRenderer.sharedMaterial.SetTexture("_EmissionMap", sourceTexture);

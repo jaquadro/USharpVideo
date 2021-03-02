@@ -25,6 +25,8 @@ namespace UdonSharp.Video
                 panel.UpdateSliderPosition(volume);
                 panel.UpdateMuteButton(muted);
             }
+
+            ApplyVolumeFromSlider(volume);
         }
 
         public void ApplyVolumeSlider(float sliderValue)
