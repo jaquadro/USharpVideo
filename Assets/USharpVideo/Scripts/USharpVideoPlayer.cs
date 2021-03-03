@@ -760,6 +760,7 @@ namespace UdonSharp.Video
                 string name = extraScreenMaterialProps[i];
 
                 mat.SetTexture(name, sourceTexture);
+                mat.SetInt("_IsAVProInput", avPro);
             }
         }
 
