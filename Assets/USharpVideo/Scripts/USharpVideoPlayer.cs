@@ -24,40 +24,39 @@ namespace UdonSharp.Video
     [AddComponentMenu("Udon Sharp/Video/M Video Player")]
     public class USharpVideoPlayer : UdonSharpBehaviour
     {
+        [Tooltip("A settings profile that provides most default settings to the player")]
+        public PlayerProfile settingsProfile;
+
         public VRCUnityVideoPlayer unityVideoPlayer;
         public VRCAVProVideoPlayer avProVideoPlayer;
         public Renderer screenRenderer;
         public MeshRenderer streamRTSource;
-        public Texture2D logoTexture;
-        public Texture2D loopTexture;
-
-        public Material[] extraScreenMaterials;
-        public string[] extraScreenMaterialProps;
-
-        RenderTexture _videoRenderTex;
-
-        [Tooltip("Whether to allow video seeking with the progress bar on the video")]
-        public bool allowSeeking = true;
-
-        [Tooltip("If enabled defaults to unlocked so anyone can put in a URL")]
-        public bool defaultUnlocked = false;
-
-        [Tooltip("If enabled defaults to stream mode")]
-        public bool defaultStream = false;
-
-        [Tooltip("Who can control the player")]
-        public int controlMode = CONTROL_MODE_MASTER_WH;
-
-        [Tooltip("Whether to play through playlist once or repeat playlist on loop")]
-        public int defaultPlaylistMode = PLAYLIST_MODE_NORMAL;
 
         [Tooltip("How often the video player should check if it is more than Sync Threshold out of sync with the video time")]
         public float syncFrequency = 5.0f;
         [Tooltip("How many seconds desynced from the owner the client needs to be to trigger a resync")]
         public float syncThreshold = 0.5f;
 
-        [Tooltip("This list of videos plays sequentially on world load until someone puts in a video")]
-        public VRCUrl[] playlist;
+        Texture2D logoTexture;
+        Texture2D loopTexture;
+        Texture2D audioOnlyTexture;
+
+        Material[] extraScreenMaterials;
+        string[] extraScreenMaterialProps;
+
+        RenderTexture _videoRenderTex;
+        
+        bool allowSeeking = true;
+        bool defaultUnlocked = false;
+        public bool defaultStream = false;
+        int controlMode = CONTROL_MODE_MASTER_WH;
+        int defaultPlaylistMode = PLAYLIST_MODE_NORMAL;
+        
+        VRCUrl[] playlist;
+        UdonBehaviour videoControlHandler;
+        string[] userWhitelist;
+
+        bool _isWhitelisted;
 
         public VRCUrlInputField inputField;
 
@@ -79,7 +78,7 @@ namespace UdonSharp.Video
         public SyncModeController syncModeController;
         public Watchdog watchdog;
 
-        public UdonBehaviour videoControlHandler;
+        
 
         // Info panel elements
         public Text masterTextField;
@@ -87,9 +86,6 @@ namespace UdonSharp.Video
         public InputField currentVideoField;
         public InputField lastVideoField;
         public GameObject masterCheckObj;
-
-        public string[] userWhitelist;
-        bool _isWhitelisted;
 
         [UdonSynced]
         VRCUrl _syncedURL;
@@ -158,6 +154,25 @@ namespace UdonSharp.Video
 
         private void Start()
         {
+            if (settingsProfile != null)
+            {
+                allowSeeking = settingsProfile.allowSeeking;
+                defaultUnlocked = settingsProfile.defaultUnlocked;
+                defaultStream = settingsProfile.defaultStream;
+                controlMode = settingsProfile.controlMode;
+                defaultPlaylistMode = settingsProfile.defaultPlaylistMode;
+
+                logoTexture = settingsProfile.logoTexture;
+                loopTexture = settingsProfile.connectingTexture;
+                audioOnlyTexture = settingsProfile.audioOnlyTexture;
+
+                videoControlHandler = settingsProfile.videoControlHandler;
+                playlist = settingsProfile.playlist;
+                extraScreenMaterials = settingsProfile.materialUpdateList;
+                extraScreenMaterialProps = settingsProfile.materialTexList;
+                userWhitelist = settingsProfile.userWhitelist;
+            }
+
             foreach (string user in userWhitelist)
             {
                 if (Networking.LocalPlayer.displayName == user)
@@ -1083,29 +1098,14 @@ namespace UdonSharp.Video
         SerializedProperty unityVideoPlayerProperty;
         SerializedProperty avProVideoPlayerProperty;
 
+        SerializedProperty settingsProfileProperty;
+
         SerializedProperty screenRendererProperty;
         SerializedProperty streamRTSourceProperty;
-        SerializedProperty logoTextureProperty;
-        SerializedProperty loopTextureProperty;
-        SerializedProperty playlistModeProperty;
 
-        ReorderableList playlistList;
-
-        ReorderableList extraScreenMaterialsList;
-        ReorderableList extraScreenMaterialPropsList;
-
-        SerializedProperty allowSeekProperty;
-        SerializedProperty defaultUnlockedProperty;
-        SerializedProperty defaultStreamProperty;
         SerializedProperty syncFrequencyProperty;
         SerializedProperty syncThresholdProperty;
-        SerializedProperty controlModeProperty;
-        SerializedProperty playlistProperty;
-        SerializedProperty extraScreenMaterialsProperty;
-        SerializedProperty extraScreenMaterialPropsProperty;
-        SerializedProperty videoControlHandlerProperty;
         SerializedProperty watchdogProperty;
-        SerializedProperty userWhitelistProperty;
 
         // UI fields
         SerializedProperty inputFieldProperty;
@@ -1136,25 +1136,15 @@ namespace UdonSharp.Video
             unityVideoPlayerProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.unityVideoPlayer));
             avProVideoPlayerProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.avProVideoPlayer));
 
+            settingsProfileProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.settingsProfile));
+
             screenRendererProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.screenRenderer));
             streamRTSourceProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.streamRTSource));
-            logoTextureProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.logoTexture));
-            loopTextureProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.loopTexture));
-            playlistModeProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.defaultPlaylistMode));
-            controlModeProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.controlMode));
 
-            allowSeekProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.allowSeeking));
-            defaultUnlockedProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.defaultUnlocked));
-            defaultStreamProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.defaultStream));
             syncFrequencyProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.syncFrequency));
             syncThresholdProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.syncThreshold));
 
-            playlistProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.playlist));
-            extraScreenMaterialsProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.extraScreenMaterials));
-            extraScreenMaterialPropsProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.extraScreenMaterialProps));
-            videoControlHandlerProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.videoControlHandler));
             watchdogProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.watchdog));
-            userWhitelistProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.userWhitelist));
 
             // UI Fields
             inputFieldProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.inputField));
@@ -1179,36 +1169,6 @@ namespace UdonSharp.Video
             currentVideoFieldProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.currentVideoField));
             lastVideoFieldProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.lastVideoField));
             masterCheckObjProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.masterCheckObj));
-
-            // Playlist
-            playlistList = new ReorderableList(serializedObject, playlistProperty, true, true, true, true);
-            playlistList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
-            {
-                Rect testFieldRect = new Rect(rect.x, rect.y + 2, rect.width, EditorGUIUtility.singleLineHeight);
-
-                EditorGUI.PropertyField(testFieldRect, playlistList.serializedProperty.GetArrayElementAtIndex(index), label: new GUIContent());
-            };
-            playlistList.drawHeaderCallback = (Rect rect) => { EditorGUI.LabelField(rect, "Default Playlist URLs"); };
-
-            // Screen Materials
-            extraScreenMaterialsList = new ReorderableList(serializedObject, extraScreenMaterialsProperty, true, true, true, true);
-            extraScreenMaterialsList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
-            {
-                Rect testFieldRect = new Rect(rect.x, rect.y + 2, rect.width, EditorGUIUtility.singleLineHeight);
-
-                EditorGUI.PropertyField(testFieldRect, extraScreenMaterialsList.serializedProperty.GetArrayElementAtIndex(index), label: new GUIContent());
-            };
-            extraScreenMaterialsList.drawHeaderCallback = (Rect rect) => { EditorGUI.LabelField(rect, "Extra Screen Materials"); };
-
-            // Screen Material Properties
-            extraScreenMaterialPropsList = new ReorderableList(serializedObject, extraScreenMaterialPropsProperty, true, true, true, true);
-            extraScreenMaterialPropsList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
-            {
-                Rect testFieldRect = new Rect(rect.x, rect.y + 2, rect.width, EditorGUIUtility.singleLineHeight);
-
-                EditorGUI.PropertyField(testFieldRect, extraScreenMaterialPropsList.serializedProperty.GetArrayElementAtIndex(index), label: new GUIContent());
-            };
-            extraScreenMaterialPropsList.drawHeaderCallback = (Rect rect) => { EditorGUI.LabelField(rect, "Extra Screen Material Properties"); };
         }
 
         public override void OnInspectorGUI()
@@ -1216,27 +1176,11 @@ namespace UdonSharp.Video
             if (UdonSharpGUI.DrawConvertToUdonBehaviourButton(target) ||
                 UdonSharpGUI.DrawProgramSource(target))
                 return;
-            
-            EditorGUILayout.PropertyField(allowSeekProperty);
-            EditorGUILayout.PropertyField(defaultUnlockedProperty);
-            EditorGUILayout.PropertyField(defaultStreamProperty);
+
+            EditorGUILayout.PropertyField(settingsProfileProperty);
+
             EditorGUILayout.PropertyField(syncFrequencyProperty);
             EditorGUILayout.PropertyField(syncThresholdProperty);
-
-            int controlModeResult = EditorGUILayout.Popup("Control Mode", controlModeProperty.intValue, new string[] { "Whitelist & Master", "Master Only", "Whitelist Only", "Anyone" });
-            controlModeProperty.intValue = controlModeResult;
-
-            int modeResult = EditorGUILayout.Popup("Playlist Mode", playlistModeProperty.intValue, new string[] { "Normal", "Repeat" });
-            playlistModeProperty.intValue = modeResult;
-
-            EditorGUILayout.Space();
-            playlistList.DoLayoutList();
-
-            EditorGUILayout.Space();
-            extraScreenMaterialsList.DoLayoutList();
-            extraScreenMaterialPropsList.DoLayoutList();
-
-            EditorGUILayout.PropertyField(userWhitelistProperty, true);
 
             EditorGUILayout.Space();
             _showUIReferencesDropdown = EditorGUILayout.Foldout(_showUIReferencesDropdown, "Object References");
@@ -1250,8 +1194,6 @@ namespace UdonSharp.Video
 
                 EditorGUILayout.PropertyField(screenRendererProperty);
                 EditorGUILayout.PropertyField(streamRTSourceProperty);
-                EditorGUILayout.PropertyField(logoTextureProperty);
-                EditorGUILayout.PropertyField(loopTextureProperty);
 
                 EditorGUILayout.PropertyField(inputFieldProperty);
                 EditorGUILayout.PropertyField(urlTextProperty);
@@ -1268,7 +1210,6 @@ namespace UdonSharp.Video
                 EditorGUILayout.PropertyField(statusTextProperty);
                 EditorGUILayout.PropertyField(statusTextDropShadowProperty);
                 EditorGUILayout.PropertyField(videoProgressSlider);
-                EditorGUILayout.PropertyField(videoControlHandlerProperty);
                 EditorGUILayout.PropertyField(watchdogProperty);
 
                 EditorGUILayout.PropertyField(masterTextFieldProperty);
