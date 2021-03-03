@@ -45,13 +45,13 @@ namespace UdonSharp.Video
         string[] extraScreenMaterialProps;
 
         RenderTexture _videoRenderTex;
-        
+
         bool allowSeeking = true;
         bool defaultUnlocked = false;
         public bool defaultStream = false;
         int controlMode = CONTROL_MODE_MASTER_WH;
         int defaultPlaylistMode = PLAYLIST_MODE_NORMAL;
-        
+
         VRCUrl[] playlist;
         UdonBehaviour videoControlHandler;
         string[] userWhitelist;
@@ -78,7 +78,7 @@ namespace UdonSharp.Video
         public SyncModeController syncModeController;
         public Watchdog watchdog;
 
-        
+
 
         // Info panel elements
         public Text masterTextField;
@@ -179,6 +179,7 @@ namespace UdonSharp.Video
                     _isWhitelisted = true;
             }
 
+
             unityVideoPlayer.Loop = false;
             unityVideoPlayer.Stop();
             avProVideoPlayer.Loop = false;
@@ -256,6 +257,20 @@ namespace UdonSharp.Video
             if (Time.time < _delayStartLoad)
                 return;
 
+            if (url != null)
+            {
+                string urlStr = url.Get();
+
+                // RTSPT sources (and maybe others!?) trigger a spontaneous OnVideoEnd event at video start
+                if (currentPlayerMode == PLAYER_MODE_STREAM && urlStr.Contains("rtspt://"))
+                {
+                    _rtsptSource = true;
+                    Debug.Log("[USharpVideo] Detected RTSPT source");
+                }
+                else
+                    _rtsptSource = false;
+            }
+
             Debug.Log("[USharpVideo] Started video load");
             _statusStr = "Loading video...";
             SetStatusText(_statusStr);
@@ -308,15 +323,6 @@ namespace UdonSharp.Video
             _videoStartNetworkTime = float.MaxValue;
 
             string urlStr = url.Get();
-
-            // RTSPT sources (and maybe others!?) trigger a spontaneous OnVideoEnd event at video start
-            if (currentPlayerMode == PLAYER_MODE_STREAM && urlStr.Contains("rtspt://"))
-            {
-                _rtsptSource = true;
-                Debug.Log("[USharpVideo] Detected RTSPT source");
-            }
-            else
-                _rtsptSource = false;
 
             if (Networking.IsOwner(gameObject))
             {
@@ -703,7 +709,8 @@ namespace UdonSharp.Video
                     avPro = 1;
             }
 #endif
-            if (videoControlHandler != null) {
+            if (videoControlHandler != null)
+            {
                 if (mode == SCREEN_MODE_NORMAL)
                     videoControlHandler.SendCustomEvent("PlayerStart");
                 else
@@ -919,7 +926,7 @@ namespace UdonSharp.Video
             }
             else if (_masterOnly && !canControl)
             {
-                switch(controlMode)
+                switch (controlMode)
                 {
                     case CONTROL_MODE_MASTER_WH:
                         urlPlaceholderText.text = $"Only the master {Networking.GetOwner(gameObject).displayName} or player admins may add URLs";
@@ -1162,7 +1169,6 @@ namespace UdonSharp.Video
             statusTextProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.statusText));
             statusTextDropShadowProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.statusTextDropShadow));
             videoProgressSlider = serializedObject.FindProperty(nameof(USharpVideoPlayer.videoProgressSlider));
-
 
             masterTextFieldProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.masterTextField));
             videoOwnerTextFieldProperty = serializedObject.FindProperty(nameof(USharpVideoPlayer.videoOwnerTextField));
